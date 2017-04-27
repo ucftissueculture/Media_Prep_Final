@@ -44,7 +44,7 @@ back = Back()
 
 # Function to ensure processes are stopped when program is closed
 def on_closing():
-    if tkmessagebox.askokcancel("Quit", "Do you want to quit?"):
+    if tkMessageBox.askokcancel("Quit", "Do you want to quit?"):
         #Make sure the system shuts down
         #class.exit_gracefully()
 
@@ -343,6 +343,8 @@ class Application(Frame):
         if processType == "Automated":
             save = self.save_and_display()
             print "Done with automated process."
+            back.motorOff()
+            gpio.cleanup()
 
 
 		#Manual, so take in input on number of trays completed and use that to calculate the filled volume.
@@ -374,6 +376,9 @@ class Application(Frame):
 		#Testing, so just state that process is stopped.
         elif processType == "Testing":
             print "Done with Testing process."
+            # this should make the stop button grey and start button ready
+            resetbtn = Button(finalout, text="Reset Values", command=self.reset, padx=7, pady=5)
+            resetbtn.pack()
 
 		#No process entered, so will throw error
         else:
