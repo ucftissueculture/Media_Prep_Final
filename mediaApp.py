@@ -42,7 +42,7 @@ def run_program():
 		sleep(3.2)			# If the jars are not alligned, change this value to adjust
                 back.motorOff()
 		sleep(1.25)
-                back.filling()
+            #    back.filling()
 		sleep(2)
 
         if gpio.input(27):

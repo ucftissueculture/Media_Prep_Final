@@ -58,19 +58,12 @@ class Back(object):
 
     # a few motor controll functions that might be usefull
 
-    # currently all of these motor functions are set to only run
-    # the motor connected to pin 18, for final deployment
-    # this can be made better by allowing a second argument
-    # that takes in an int and replaces 18 in all the motor
-    # methods with that int
-    # ex:    def motorOn(self, n):
-    #           wiringpi.pwmWrite(n, 600)
-
     # turns motor on instantly at 60%
     def motorOn(self):
         wiringpi.pwmWrite(18, 800)
         motorState = 1
 
+    # This function should allow running a motor on a different pin
     def motor(self, pin, speed):
         wiringpi.pwmWrite(pin, speed)
         motorState = 1
@@ -83,28 +76,9 @@ class Back(object):
     def motorSpeed(self, speed):
 	wiringpi.pwmWrite(18, speed)
 
-    ## for whatever reason the motorRampDown function was not
-    ## working when trying to ramp down on exit.
 
-    ## during testing the motor stop function didn't seem as
-    ## abrupt as I worried it might be so the ramp up & down
-    ## methods might not be worth having
+    ## this is mostly for testing, but an indicator LED can be added
 
-    # # ramps motor down from 60% to off with 10% increments
-    # def motorRampDown(self):
-    #     for i in range(800, 0, 10):
-    #         wiringpi.pwmWrite(18, i)
-    #
-    # # ramps motor up from off to 60% with 10% increments
-    # def motorRampUp(self):
-    #     for i in range(o, 800, 10):
-    #         wiringpi.pwmWrite(18, i)
-
-
-
-
-    ## this is mostly for testing, but an indicator LED can be used
-    ## in final release
     # function to control an LED, it takes in the state to change
     # the LED to for example ledState(on), turns the LED on
     def ledState(self, state):
@@ -126,10 +100,138 @@ class Back(object):
         # ON = 0
         # OFF = 1
         # duration = 4
-
-	
 	
         gpio.output(26, 0)
         sleep(4)		# To change the duration that the filling valves are open change this value to the required seconds you want open 
         gpio.output(26, 1)
 	sleep(2)
+
+    def switchTest(self):
+
+        print("       Switch Testing Program is running.          ")
+        print(" ------------------------------------------------  ")
+        print(" To check if a switch is working correctly please  ")
+        print("  manually press the two switches simultaneously   ")
+        print(" ------------------------------------------------  ")
+        print("      To exit the program press control-c          ")
+
+
+
+        while 1:
+           
+            if gpio.input(4):
+                print "Switch 1 pressed"
+
+
+           ## To add more switches simply add another on of these replacing '17' with
+           ## the gpio pin that the switch is connected to.
+           # elif gpio.input(17):
+               # print "Switch 2 Pressed"
+
+            elif gpio.input(27):
+                print "Switch 5 Pressed"
+
+
+            else:
+                print "no switches pressed "
+                print "switch 1 reads: ", gpio.input(4)
+                print "switch 5 reads: ", gpio.input(27)
+
+
+
+    def motorTest(self):
+
+        print("        Motor Testing Program is running.          ")
+        print(" ------------------------------------------------  ")
+        print(" Enter 'r' to run the motor, a number 1 - 9 to run ")
+        print("       at a different speed, and 's' to stop.      ")
+        print(" ------------------------------------------------  ")
+        print("      To exit the program press control-c          ")
+            
+
+        while 1:
+            x = sys.stdin.read(1)
+            
+            if x == 'r':
+                #motor on
+                wiringpi.pwmWrite(18, 600)
+            if x == 's':
+                #motor off
+                wiringpi.pwmWrite(18, 0) 
+
+            if x == '1':
+                wiringpi.pwmWrite(18, 100)
+
+            if x == '2':
+                wiringpi.pwmWrite(18, 200)
+
+            if x == '3':
+                wiringpi.pwmWrite(18, 300)
+
+            if x == '4':
+                wiringpi.pwmWrite(18, 400)
+
+            if x == '5':
+                wiringpi.pwmWrite(18, 500)
+
+            if x == '6':
+                wiringpi.pwmWrite(18, 600)
+
+            if x == '7':
+                wiringpi.pwmWrite(18, 700)
+
+            if x == '8':
+                wiringpi.pwmWrite(18, 800)
+
+            if x == '9':
+                wiringpi.pwmWrite(18, 900)
+
+
+
+    def fillTest(self):
+
+        print("       Filling Testing Program is running.            ")
+        print(" ---------------------------------------------------- ")
+        print(" Enter 'f' for filling, 'o' to open, and 's' to close ")
+        print(" ---------------------------------------------------  ")
+        print("      To exit the program press control-c             ")
+
+        while 1:
+            x=sys.stdin.read(1)
+            if x == 'f':
+                back.filling()
+            if x == 's':
+                gpio.output(26, 1)
+            if x == 'o':
+                gpio.output(26, 0)
+
+    def alignTest(self):
+        print("        Alignment Testing Program is running.         ")
+        print(" ---------------------------------------------------- ")
+        print(" Run the tray through the system to check the tray    ")
+        print("    alignment, the tray will stop under filling,      ")
+        print("        but will not open the filling valves          ") 
+        print(" ---------------------------------------------------  ")
+        print("      To exit the program press control-c             ")
+        while 1:
+            if gpio.input(4):
+                back.motorOff()
+                print "TRIGGER WARNING:  Filling switch triggered"
+                sleep(0.25)
+                if gpio.input(4):
+                    back.motorOn()
+                    sleep(3.2)			# If the jars are not alligned, change this value to adjust
+                    back.motorOff()
+                    sleep(1.25)
+                    sleep(2)
+
+            if gpio.input(27):
+                back.motorOff()
+                print "TRIGGER WARNING: End switch triggered"
+                sleep(0.1)
+
+            else:
+                back.motorOn()
+                print "running"
+                sleep(0.1)
+

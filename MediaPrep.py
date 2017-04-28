@@ -204,7 +204,7 @@ class Application(Frame):
 		# Automated process - run automated line from back-end script
         if (processType == "Automated"):
             print "Running Automated process."
-            global fillVol, numTrays
+            global fillVol, numTrays, completed
             if gpio.input(4):
                 back.motorOff()
                 # print "Filling switch triggered"
@@ -309,12 +309,14 @@ class Application(Frame):
 
     #This method runs test 1 in the testing mode by calling back-end script
     def test1(self):
-        #Add method from back-end to run Test 1
+        #Add method from back-end to run Test 1 motor test
+        back.motorTest()
         print "Test 1 complete."
 
     # This method runs test 2 in the testing mode by calling back-end script
     def test2(self):
         # Add method from back-end to run Test 2
+        back.switchTest()
         print "Test 2 complete."
 
     # This method runs test 3 in the testing mode by calling back-end script
@@ -325,6 +327,7 @@ class Application(Frame):
     # This method runs test 4 in the testing mode by calling back-end script
     def test4(self):
         # Add method from back-end to run Test 4
+        back.fillTest()
         print "Test 4 complete."
 
     # This handles the logic of pressing the stop button on the application. This will end whatever process
@@ -613,5 +616,4 @@ class Application(Frame):
 
 # End of application - DO NOT EDIT
 app = Application(root)
-time.sleep(0.1)
 root.mainloop()
