@@ -613,5 +613,5 @@ class Application(Frame):
 
 # End of application - DO NOT EDIT
 app = Application(root)
-time.sleep(0.25)
+time.sleep(0.1)
 root.mainloop()
