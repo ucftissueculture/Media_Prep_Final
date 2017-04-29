@@ -135,7 +135,7 @@ class Application(Frame):
         self.processlist.grid(column=2, row=4)
 
         #Pack Frame - place everything within frame.
-        self.sframe.pack(fill="both", expand="yes", anchor='w')
+        self.sframe.grid()
 
     # Create Button Frame - this will create the "Start Process" and "STOP" buttons
     def create_buttons(self):
@@ -609,7 +609,7 @@ class Application(Frame):
         self.fillValue.grid(column=2, row=5)
 
         # Pack Frame
-        self.rframe.pack(fill="both", expand="yes", anchor='w')
+        self.rframe.grid()
 
 # End of application - DO NOT EDIT
 app = Application(root)
