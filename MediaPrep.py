@@ -83,9 +83,9 @@ class Application(Frame):
     def create_title(self):
         self.tframe = ttk.Frame(root)
         self.title = ttk.Label(self.tframe, text='Agri-Starts Media Preparation', font = "calibri 16 bold")
-        self.title.pack()
+        self.title.grid(column=1,row=1)
         self.tframe.config(padding=(10, 10))
-        self.tframe.pack()
+        self.tframe.grid(column=1,row=1)
 
     # Create Setup Frame - this creates the elements in the setup frame, where the user will provide inputs
     def create_setup(self):
@@ -155,7 +155,7 @@ class Application(Frame):
         self.stop.grid(column=2,row=1)
 
         #Pack Frame
-        self.bframe.pack()
+        self.bframe.grid(column=1,row=2)
 
     #This method handles the clicking of the 'Start Process' button
     def selectClick(self):
@@ -184,11 +184,11 @@ class Application(Frame):
 
             # create the window's message
             msg = Message(top, text=about_message, justify=CENTER, pady=5)
-            msg.pack()
+            msg.grid(column=1, row=1, rowspan=2)
 
             # add a button that allows user to exit window
             button = Button(top, text="Dismiss", command=top.destroy, padx=7, pady=5)
-            button.pack()
+            button.grid(column=1, row=3)
 
         #No information missing, so change button states and run the process
         else:
@@ -359,29 +359,26 @@ class Application(Frame):
             inputwindow.geometry("%dx%d%+d%+d" % (300, 200, 250, 125))
 
             lbl_msg = Label(inputwindow, justify=RIGHT, padx=30, pady=20, text="Input number of trays completed:", font="Verdana 10")
-            lbl_msg.pack()
+            lbl_msg.grid(column=1,row=1,columnspan=2)
 
             # Create the 'Trays Completed' label
             lbl_nTrays = Label(inputwindow, justify=RIGHT, padx=15, text="Trays Completed:", font="Verdana 10")
-            lbl_nTrays.pack()
+            lbl_nTrays.grid(column=1,row=2)
 
             # Set the number of trays completed
             self.trayValue = Entry(inputwindow)
-            self.trayValue.pack()
+            self.trayValue.grid(column=2,row=2)
 
             # Purely aesthetic label
             lbl_pretty = Label(inputwindow, justify=RIGHT, padx=15, text="", font="Verdana 10")
-            lbl_pretty.pack()
+            lbl_pretty.grid(column=1,row=3)
 
             submittbtn = Button(inputwindow, text="Done", command=self.save_and_display, padx=10, pady=5)
-            submittbtn.pack()
+            submittbtn.grid(column=1,row=4,columnspan=2)
 
 		#Testing, so just state that process is stopped.
         elif processType == "Testing":
             print "Done with Testing process."
-            # this should make the stop button grey and start button ready
-            resetbtn = Button(finalout, text="Reset Values", command=self.reset, padx=7, pady=5)
-            resetbtn.pack()
 
 		#No process entered, so will throw error
         else:
@@ -419,11 +416,11 @@ class Application(Frame):
         if processType == "Manual":
             about_message = about_message + "\nRemember to close all windows that are \nnot the main application window."
         msg = Message(finalout, text=about_title + about_message, width=350, anchor='w', pady=10)
-        msg.pack()
+        msg.grid(column=1,row=1, rowspan=8)
 
         # Close the results pop up and reset all values on screen
         resetbtn = Button(finalout, text="Reset Values", command=self.reset, padx=7, pady=5)
-        resetbtn.pack()
+        resetbtn.grid(column=1,row=9)
 
 	#This method formats the run time to H:M:S
     def formtime(self):
@@ -616,5 +613,4 @@ class Application(Frame):
 
 # End of application - DO NOT EDIT
 app = Application(root)
-sleep(0.1)
 root.mainloop()
