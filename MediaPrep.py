@@ -25,12 +25,14 @@ import tkMessageBox
 from time import time as tm
 
 #Import libraries needed for saving to excel
-import openpyxl
-from openpyxl import Workbook
-from openpyxl.styles import Alignment
+#import openpyxl
+#from openpyxl import Workbook
+#from openpyxl.styles import Alignment
 from datetime import datetime
 import calendar
 from pathlib import Path
+import csv
+import os
 
 # Import modules for the backend
 from back import Back
@@ -204,7 +206,7 @@ class Application(Frame):
 		# Automated process - run automated line from back-end script
         if (processType == "Automated"):
             print "Running Automated process."
-            global fillVol, numTrays, completed
+            global fillVol, numTrays
             if gpio.input(4):
                 back.motorOff()
                 # print "Filling switch triggered"
@@ -216,10 +218,11 @@ class Application(Frame):
                     sleep(1.25)
                     back.filling()
                     sleep(2)
+                    numTrays += 1
 
             if gpio.input(27):
                 back.motorOff()
-                completed += 1
+                numTrays += 1
                 # print "End switch triggered"
                 sleep(0.1)
 
@@ -229,8 +232,8 @@ class Application(Frame):
                 sleep(0.1)
 
             #Change this to get numtrays from back-end
-            numTrays = completed
-            fillVol = float(numTrays) * 30 * 30 / 1000
+            #numTrays = completed
+            #fillVol = float(numTrays) * 30 * 30 / 1000
 
         # Manual Process - run the  line at 30% motor speed from backend script
         elif (processType == "Manual"):
@@ -342,7 +345,7 @@ class Application(Frame):
         rtime = tm() - t0
         finalt = self.formtime()
 
-		#Automated, so just call the save and display method
+	    #Automated, so just call the save and display method
         if processType == "Automated":
             save = self.save_and_display()
             print "Done with automated process."
@@ -410,9 +413,9 @@ class Application(Frame):
 
         # Add a title and message to the window
         about_title = "FINAL PROCESS RESULTS\n\n"
-        about_message = "Media Type:\t\t" + mediaType + "\nTray Type:\t\t" + trayType + "\nProcess Type:\t\t" + \
+        about_message = "Media Type:\t\t" + mediaType + "\nTray Type:\t\t\t" + trayType + "\nProcess Type:\t\t" + \
                         processType + "\nTrays Completed:\t\t" + numTrays.__str__() + "\nFilled Volume (L):\t\t" + \
-                        fillVol.__str__() + "\nRun Time (H:M:S):\t" + finalt + "\n\n" + errormsg
+                        fillVol.__str__() + "\nRun Time (H:M:S):\t\t" + finalt + "\n\n" + errormsg
         if processType == "Manual":
             about_message = about_message + "\nRemember to close all windows that are \nnot the main application window."
         msg = Message(finalout, text=about_title + about_message, width=350, anchor='w', pady=10)
@@ -430,7 +433,8 @@ class Application(Frame):
         ftime = "%02d:%02d:%02d" % (h, m, s)
         return ftime
 
-	#This method will save the results data to an Excel sheet
+    
+	
     def savedata(self):
         print "Saving...."
         # Get current month and year info
@@ -438,102 +442,39 @@ class Application(Frame):
         year = datetime.now().year
         month = calendar.month_name[monthnum]
         day = datetime.now().day
+        hour = datetime.now().hour
+        minute = datetime.now().minute
+        tStamp = "_%02d:%02d" % (hour, minute)
 
         # get global version of variables to save
         global mediaType, processType, numTrays, fillVol, rtime, trayType
 
         # Create name of data file, corresponding to current year and month. Edit the filepath to change where it saves.
-        filename = "MediaPrepData_" + month.__str__() + year.__str__() + ".xlsx"
-        filepathend = "\MediaPrepData_" + month.__str__() + year.__str__() + ".xlsx"
-        filepath = Path("C:\Users\Clarisse\Documents\MediaPrepStudio" + filepathend)
+        directory = "/home/pi/logging/" + year.__str__() + "/" + month.__str__() 
+        if not os.path.exists(directory ):
+            os.makedirs(directory)
+    
+        filename = directory +"/" + "MediaPrepData_" + month.__str__() + year.__str__() + tStamp.__str__() + ".xlsx"
+        filepathend = "/MediaPrepData_" + month.__str__() + year.__str__()
+        filepath = Path("/home/pi/logging/" + filepathend)
+        m, s = divmod(rtime, 60)
+        h, m = divmod(m, 60)
+        ftime = "%02d:%02d:%02d" % (h, m, s)
 
-        try:
-            # Open file if it exists in path, otherwise create a new one for the month
-            if filepath.is_file():
-                # Open workbook for the month
-                currdatalog = openpyxl.load_workbook(filename)
-                currsheet = currdatalog.get_sheet_by_name("Media Prep Log")
+        with open(filename, 'wb') as csvfile:
+            writer = csv.writer(csvfile, delimiter= " ", quotechar = ',', quoting= csv.QUOTE_ALL)
+            #writer.writerow(monthnum.__str__())   
+            writer.writerow(["Media Type", mediaType])
+            writer.writerow(["Num of Trays", numTrays])
+            writer.writerow(["Media Vol Used", fillVol])
+            writer.writerow(["Runtime", ftime])
+            writer.writerow(["Tray Type", trayType])
 
-                # Find next available row in file
-                rownum = currsheet.max_row + 1
+                
 
-                # Print data to that location
-                currsheet.cell(row=rownum, column=1).value = monthnum.__str__() + "/" + day.__str__() + "/" + year.__str__()
-                currsheet.cell(row=rownum, column=2).value = mediaType
-                currsheet.cell(row=rownum, column=3).value = trayType
-                currsheet.cell(row=rownum, column=4).value = processType
-                currsheet.cell(row=rownum, column=5).value = numTrays
-                currsheet.cell(row=rownum, column=6).value = fillVol
-                currsheet.cell(row=rownum, column=7).value = self.formtime()
 
-                # Save the file with updated data
-                currdatalog.save(filename)
-                print "Save Complete."
 
-            # File not found, so create one
-            else:
-                print "File not found...creating one."
-
-                # Create workbook for the month
-                datalog = Workbook()
-
-                # Create worksheet and give it the proper name
-                sheet = datalog.active
-                sheet.title = "Media Prep Log"
-                print datalog.sheetnames
-
-                # Create heading for file
-                sheet.cell(row=1, column=1).value = "Media Prep Log"
-                sheet.cell(row=1, column=1).value = "Agri-Starts Media Preparation Data Log"
-                sheet.cell(row=2, column=1).value = "Month:"
-                sheet.cell(row=2, column=2).value = month.__str__()
-                sheet.cell(row=3, column=1).value = "Year:"
-                sheet.cell(row=3, column=2).value = year
-                sheet.cell(row=3, column=2).alignment = Alignment(horizontal='left')
-
-                # Now create table headers for data
-                sheet.cell(row=5, column=1).value = "Date"
-                sheet.cell(row=5, column=2).value = "Media Type"
-                sheet.cell(row=5, column=3).value = "Tray Type"
-                sheet.cell(row=5, column=4).value = "Process Type"
-                sheet.cell(row=5, column=5).value = "Trays Completed"
-                sheet.cell(row=5, column=6).value = "Filled Volume (L)"
-                sheet.cell(row=5, column=7).value = "Run Time (H:M:S)"
-
-                # Set column widths
-                sheet.column_dimensions['A'].width = 12.0
-                sheet.column_dimensions['B'].width = 12.0
-                sheet.column_dimensions['C'].width = 13.0
-                sheet.column_dimensions['D'].width = 13.0
-                sheet.column_dimensions['E'].width = 13.0
-                sheet.column_dimensions['F'].width = 16.0
-                sheet.column_dimensions['G'].width = 15.0
-                sheet.column_dimensions['H'].width = 16.0
-
-                # Set row number to 6, which is start of data
-                rownum=6
-
-                # Print data to that location
-                sheet.cell(row=rownum, column=1).value = monthnum.__str__() + "/" + day.__str__() + "/" + year.__str__()
-                sheet.cell(row=rownum, column=2).value = mediaType
-                sheet.cell(row=rownum, column=3).value = trayType
-                sheet.cell(row=rownum, column=4).value = processType
-                sheet.cell(row=rownum, column=5).value = numTrays
-                sheet.cell(row=rownum, column=6).value = fillVol
-                sheet.cell(row=rownum, column=7).value = self.formtime()
-
-                # Save file
-                datalog.save(filename)
-                print "Save Complete."
-
-        #There is an issue saving the file, so set message that will prompt the user to manually save data.
-        except Exception:
-            global errormsg
-            errormsg = "Problem saving to file. Please manually enter data \ninto file if you would like it to be logged."
-            return errormsg
-        return ""
-
-	# This performs a reset of all values on the main application window
+    # This performs a reset of all values on the main application window
     # It ensures that data is not kept from one process to the next
     def reset(self):
         print "Values are reset."
@@ -554,7 +495,7 @@ class Application(Frame):
         self.media.set("None")
         mediaType = "None"
         self.mstartVol.delete(0, 'end')
-        self.trayValue.delete(0,'end')
+        #self.trayValue.delete(0,'end')
         self.process.set("None")
         self.trayType.set("None")
 
